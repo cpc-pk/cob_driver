@@ -75,6 +75,7 @@ public:
 private:
 	// --------------- Types
 	HANDLE m_handle;
+	void initCanDevice();
 	
 	bool m_bInitialized;
 	IniFile m_IniFile;
