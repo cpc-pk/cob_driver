@@ -297,22 +297,22 @@ class NodeClass
 				m_bisInitialized = initDrives();
 				//ROS_INFO("...initializing can-nodes...");
 				//m_bisInitialized = m_CanCtrlPltf->initPltf();
-				res.success = m_bisInitialized;
+				res.success.data = m_bisInitialized;
 				if(m_bisInitialized)
 				{
 		   			ROS_INFO("Can-Node initialized");
 				}
 				else
 				{
-					res.errorMessage.data = "initialization of can-nodes failed";
+					res.error_message.data = "initialization of can-nodes failed";
 				  	ROS_INFO("Initialization FAILED");
 				}
 			}
 			else
 			{
 				ROS_ERROR("...platform already initialized...");
-				res.success = false;
-				res.errorMessage.data = "platform already initialized";
+				res.success.data = false;
+				res.error_message.data = "platform already initialized";
 			}
 			return true;
 		}
@@ -351,11 +351,11 @@ class NodeClass
 									 cob_srvs::Trigger::Response &res )
 		{
 			ROS_DEBUG("Service callback reset");
-			res.success = m_CanCtrlPltf->resetPltf();
-			if (res.success) {
+			res.success.data = m_CanCtrlPltf->resetPltf();
+			if (res.success.data) {
 	   			ROS_INFO("Can-Node resetted");
 			} else {
-				res.errorMessage.data = "reset of can-nodes failed";
+				res.error_message.data = "reset of can-nodes failed";
 				ROS_WARN("Reset of Can-Node FAILED");
 			}
 
@@ -367,8 +367,8 @@ class NodeClass
 									 cob_srvs::Trigger::Response &res )
 		{
 			ROS_DEBUG("Service callback shutdown");
-			res.success = m_CanCtrlPltf->shutdownPltf();
-			if (res.success)
+			res.success.data = m_CanCtrlPltf->shutdownPltf();
+			if (res.success.data)
 	   			ROS_INFO("Drives shut down");
 			else
 	   			ROS_INFO("Shutdown of Drives FAILED");
