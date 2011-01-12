@@ -99,10 +99,7 @@ void CANPeakSysUSB::init()
 		sleep(3);
 		exit(0);
 	}
-
 	initCanDevice();
-	
-
 }
 
 //-------------------------------------------
@@ -124,41 +121,30 @@ bool CANPeakSysUSB::transmitMsg(CanMsg CMsg, bool bBlocking)
 	int iRet;
 
 	//cpc-pk ----------------------------------
-	//DRIVE_CHAIN DEBUG:
-	std::cout << "CANPeakUSB: now CAN_Write" << std::endl;
-	
 	//iRet = CAN_Write(m_handle, &TPCMsg);
-
 	iRet = LINUX_CAN_Write_Timeout(m_handle, &TPCMsg, 10);
 
+	//cpc-pk: we also could detect the bus-off earlier than recognizing it only when the queue runs full. For that, use CAN_Status(m_handle)
 	if(iRet != CAN_ERR_OK) {
-
-		if(iRet != CAN_ERR_QXMTFULL) {
+		bRet = false;
+	
+		if(iRet == CAN_ERR_QXMTFULL) {
 			std::cout << "CAN sending queue is FULL! Timeout occured." << std::endl;
-
 			std::cout << "Status message stored on CAN_module is: " << (iRet = CAN_Status(m_handle)) << std::endl;
-
 			if(iRet == CAN_ERR_BUSOFF) {
-				std::cout << "CAN_ERR_BUSOFF detected, now should be going to re-init the CAN device." << std::endl;
-				//initCanDevice();
+				std::cout << "..this means CAN_ERR_BUSOFF detected, now trying to re-init the CAN device:" << std::endl;
+				initCanDevice();
 			}
+		} else {
+			std::cout << "CAN error while trying to write messages. ErrNo: " << iRet << std::endl;
 		}
-		
 	}
 
-	//std::cout << "CANPeakUSB: returned from CAN_Write" << std::endl;
-	
-	// iRet = CAN_Status(m_handle);
-
-	//std::cout << "CANPeakUSB: returned CAN_Status" << std::endl;
-	//----
-
-	if(iRet < 0) //STATUS < 0 means system error (not dependent on specific device)
+	if(iRet < 0) //STATUS < 0 means system error (not dependent on specific hardware-device / path)
 	{
 		std::cout <<  "CANPeakSysUSB::transmitMsg, errorcode= " << nGetLastError() << std::endl;
 		bRet = false;
 	}
-
 
 	return bRet;
 }
@@ -187,9 +173,9 @@ bool CANPeakSysUSB::receiveMsg(CanMsg* pCMsg)
 
 		//cpc-pk:
 		if(TPCMsg.Msg.MSGTYPE == 0x80) { //MSGTYPE = STATUS received
-			std::cout << "CanPeakSysUSB: Status message received: " << TPCMsg.Msg.DATA[3] << std::endl;
+			std::cout << "CanPeakSysUSB: Status message received: In the following you'll see the 8 datablocks of the message. (3rd relevant) \n" << TPCMsg.Msg.DATA[0] << "\n" << TPCMsg.Msg.DATA[1] << "\n" << TPCMsg.Msg.DATA[2] << "\n" << TPCMsg.Msg.DATA[3] << "\n" << TPCMsg.Msg.DATA[4] << "\n" << TPCMsg.Msg.DATA[5] << "\n" << TPCMsg.Msg.DATA[6] << "\n" << TPCMsg.Msg.DATA[7] << std::endl;
 		}
-		//---		
+		//---
 	}
 	else if (CAN_Status(m_handle) != CAN_ERR_QRCVEMPTY)
 	{
